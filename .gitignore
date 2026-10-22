@@ -1,0 +1,25 @@
+# --- Sistema ---
+.DS_Store
+.Rhistory
+.RData
+.Rproj.user/
+
+# --- Carpetas que no van al repositorio ---
+Resultados_Algoritmos_v1/
+Escrito/
+Referencias/
+Plots/
+*.pdf
+
+# --- Código exploratorio / no usado ---
+codigo/sin_uso/
+codigo/celltyping-pruebas.R
+codigo/Revision_original.R
+
+# --- Datos de referencia de terceros (se descargan aparte) ---
+codigo/referencia_anotacion/
+
+# --- Salidas de renderizado de Quarto ---
+*.html
+*_files/
+.quarto/

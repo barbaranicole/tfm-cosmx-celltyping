@@ -1,0 +1,857 @@
+---
+title: "Cell Typing - Insitutype"
+format:
+  html:
+    embed-resources: true
+    self-contained: true
+    code-fold: false
+    toc: true
+    page-layout: full
+editor: visual
+execute:
+  echo: false
+  warning: false
+  message: false
+  error: false
+---
+
+```{r}
+library(Seurat)
+library(tidyverse)
+library(patchwork)
+library(pheatmap)
+library(kableExtra)
+library(knitr)
+library(clustree)
+library(DT)
+source("funciones.R")
+```
+
+# Dataset original
+
+```{r}
+merged_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
+merged <- readRDS(merged_rds)
+merged$IST_original_nclusts6 <- as.factor(traducir_etiquetas(as.character(merged$IST_original_nclusts6)))
+merged$IST_original_nclusts8 <- as.factor(traducir_etiquetas(as.character(merged$IST_original_nclusts8)))
+merged$IST_original_nclusts10 <- as.factor(traducir_etiquetas(as.character(merged$IST_original_nclusts10)))
+
+#ruta marcadores
+base_markers <- "~/Documents/Master/TFM/Resultados_Algoritmos_v1/Resultados_original"
+
+#ruta salida plots
+base_salida <- file.path(base_markers, paste0("Plots"))
+
+```
+
+## Clustree - Etiquetas originales
+
+```{r, fig.height=4, fig.width=8}
+col_clusters <- c("IST_original_nclusts6", 
+                     "IST_original_nclusts8", 
+                     "IST_original_nclusts10")
+
+# Extraemos solo esa parte de la metadata
+merged_clust <- merged@meta.data[, col_clusters]
+conteo_k <- merged_clust %>% 
+  summarise(across(all_of(col_clusters), n_distinct))
+
+print(conteo_k)
+
+plot_clustree <- clustree(merged_clust, prefix = "IST_original_nclusts", layout = "sugiyama") +
+  #theme(legend.position = "bottom") +
+  labs(title = "Árbol de Clustering: InSituType",
+       color = "Resolución")
+
+plot_clustree
+
+ruta_clustree_original <- file.path(base_salida, paste0("IST_Clustree_etiquetas_originales.png"))
+ggsave(filename = ruta_clustree_original, 
+       plot = plot_clustree, 
+       width = 10, 
+       height = 8, 
+       dpi = 300, 
+       bg = "white")                                    
+```
+
+## 6 Perfiles libres
+
+### UMAP
+
+```{r}
+col_cluster <- 'IST_original_nclusts6'
+plot_umap_ist(merged, col_cluster)
+
+ruta_umap_original <- file.path(base_salida, paste0(col_cluster, "_umap1.png"))
+# guardar_umap_ist(merged, col_cluster, ruta_umap_original)
+```
+
+### Cantidad de células por tipo
+
+```{r}
+tabla_conteos_ist(merged, col_cluster)
+```
+
+### Marcadores por cluster
+
+```{r}
+ruta_markers <- file.path(base_markers, paste0("Marcadores_", col_cluster, ".txt"))
+resumen_marcadores_ist(ruta_markers)
+```
+
+### Perfil
+
+```{r}
+#| out-width: "80%"  # Usa porcentajes de la pantalla
+
+ruta_heatmap <- file.path(base_salida, paste0(col_cluster, "_heatmap.png"))
+
+perfil_heatmap <- perfil_heatmap_ist(merged, col_cluster,
+                   titulo = paste("Perfil de expresión promedio -", col_cluster),
+                   ruta_archivo = ruta_heatmap)
+
+knitr::include_graphics(ruta_heatmap)
+```
+
+### Marcador PanCK
+
+```{r}
+boxplots_panck_ist(merged, col_cluster)
+
+ruta_panck <- file.path(base_salida, paste0(col_cluster, "_panck.png"))
+guardar_panck_ist(merged, col_cluster, ruta_panck)
+```
+
+### UMAP con todos los labels
+
+```{r}
+mapa_grupos <- c(
+  "a" = "Tumor",
+  "c" = "Tumor",
+  "d" = "Tumor",
+  "f" = "Tumor",
+  "b" = "Estroma",
+  "e" = "Tumor",
+  "Plasb" = "Plas",
+  "B-cell" = "cel. B"
+
+)
+
+nueva_col <- 'IST_original_nclusts6_grupo'
+merged <- recode_cluster_grupos(merged, col_cluster, nueva_col, mapa_grupos) 
+plot_umap_ist(merged, nueva_col)
+
+ruta_umap_original <- file.path(base_salida, paste0(nueva_col, "_umap1.png"))
+guardar_umap_ist(merged, nueva_col, ruta_umap_original)
+```
+
+### Cantidad de células post etiquetado
+
+```{r}
+tabla_conteos_ist(merged, nueva_col)
+```
+
+## 8 Perfiles libres
+
+### UMAP
+
+```{r}
+col_cluster <- 'IST_original_nclusts8'
+plot_umap_ist(merged, col_cluster)
+
+ruta_umap_original <- file.path(base_salida, paste0(col_cluster, "_umap1.png"))
+guardar_umap_ist(merged, col_cluster, ruta_umap_original)
+```
+
+### Cantidad de células por tipo
+
+```{r}
+tabla_conteos_ist(merged, col_cluster)
+```
+
+### Marcadores por cluster
+
+```{r}
+ruta_markers <- file.path(base_markers, paste0("Marcadores_", col_cluster, ".txt"))
+resumen_marcadores_ist(ruta_markers)
+```
+
+### Perfil
+
+```{r}
+#| out-width: "80%"  # Usa porcentajes de la pantalla
+
+ruta_heatmap <- file.path(base_salida, paste0(col_cluster, "_heatmap.png"))
+
+perfil_heatmap <- perfil_heatmap_ist(merged, col_cluster,
+                   titulo = paste("Perfil de expresión promedio -", col_cluster),
+                   ruta_archivo = ruta_heatmap)
+
+knitr::include_graphics(ruta_heatmap)
+```
+
+### Marcador PanCK
+
+```{r}
+boxplots_panck_ist(merged, col_cluster)
+
+ruta_panck <- file.path(base_salida, paste0(col_cluster, "_panck.png"))
+guardar_panck_ist(merged, col_cluster, ruta_panck)
+```
+
+### UMAP con todos los labels
+
+```{r}
+mapa_grupos <- c(
+  "a" = "Tumor",
+  "b" = "Tumor",
+  "c" = "Tumor",
+  "e" = "Tumor",
+  "f" = "Tumor",
+  "h" = "Tumor",
+  "d" = "Estroma",
+  "g" = "Epit",
+  "Plasb" = "Plas",
+  "B-cell" = "cel. B"
+)
+nueva_col <- 'IST_original_nclusts8_grupo'
+merged <- recode_cluster_grupos(merged, col_cluster, nueva_col, mapa_grupos) 
+plot_umap_ist(merged, nueva_col)
+
+ruta_umap_original <- file.path(base_salida, paste0(nueva_col, "_umap1.png"))
+guardar_umap_ist(merged, nueva_col, ruta_umap_original)
+```
+
+### Cantidad de células post etiquetado
+
+```{r}
+tabla_conteos_ist(merged, nueva_col)
+```
+
+## 10 Perfiles libres
+
+### UMAP
+
+```{r}
+col_cluster <- 'IST_original_nclusts10'
+plot_umap_ist(merged, col_cluster)
+
+ruta_umap_original <- file.path(base_salida, paste0(col_cluster, "_umap1.png"))
+guardar_umap_ist(merged, col_cluster, ruta_umap_original)
+```
+
+### Cantidad de células por tipo
+
+```{r}
+tabla_conteos_ist(merged, col_cluster)
+```
+
+### Marcadores por cluster
+
+```{r}
+ruta_markers <- file.path(base_markers, paste0("Marcadores_", col_cluster, ".txt"))
+resumen_marcadores_ist(ruta_markers)
+```
+
+### Perfil
+
+```{r}
+#| out-width: "80%"  # Usa porcentajes de la pantalla
+
+ruta_heatmap <- file.path(base_salida, paste0(col_cluster, "_heatmap.png"))
+
+perfil_heatmap <- perfil_heatmap_ist(merged, col_cluster,
+                   titulo = paste("Perfil de expresión promedio -", col_cluster),
+                   ruta_archivo = ruta_heatmap)
+
+knitr::include_graphics(ruta_heatmap)
+```
+
+### Marcador PanCK
+
+```{r}
+boxplots_panck_ist(merged, col_cluster)
+
+ruta_panck <- file.path(base_salida, paste0(col_cluster, "_panck.png"))
+guardar_panck_ist(merged, col_cluster, ruta_panck)
+```
+
+### UMAP con todos los labels
+
+```{r}
+mapa_grupos <- c(
+  "a" = "Tumor",
+  "b" = "Tumor",
+  "d" = "Tumor",
+  "f" = "Tumor",
+  "g" = "Tumor",
+  "j" = "Tumor",
+  "c" = "Tumor",
+  "e" = "Estroma",
+  "i" = "Epit",
+  "h" = "Mac/Fib", # Marcadores de ambos tipos
+  "Plasb" = "Plas",
+  "B-cell" = "cel. B"
+
+)
+nueva_col <- 'IST_original_nclusts10_grupo'
+merged <- recode_cluster_grupos(merged, col_cluster, nueva_col, mapa_grupos) 
+plot_umap_ist(merged, nueva_col)
+
+ruta_umap_original <- file.path(base_salida, paste0(nueva_col, "_umap1.png"))
+guardar_umap_ist(merged, nueva_col, ruta_umap_original)
+```
+
+### Cantidad de células post etiquetado
+
+```{r}
+tabla_conteos_ist(merged, nueva_col)
+```
+
+## Clustree - Post Etiquetas
+
+```{r, fig.height=4, fig.width=8}
+merged$IST_grupo_6  <- as.character(merged$IST_original_nclusts6_grupo)
+merged$IST_grupo_8  <- as.character(merged$IST_original_nclusts8_grupo)
+merged$IST_grupo_10 <- as.character(merged$IST_original_nclusts10_grupo)
+
+merged_clust <- merged@meta.data[, c("IST_grupo_6", "IST_grupo_8", "IST_grupo_10")]
+conteo_k <- merged_clust %>% 
+  summarise(across(all_of(c("IST_grupo_6", "IST_grupo_8", "IST_grupo_10")), n_distinct))
+
+print(conteo_k)
+
+
+plot_clustree_grupos <- clustree(merged, prefix = "IST_grupo_", layout = "sugiyama") +
+  labs(title = "InSituType",
+       subtitle = "Perfiles libres = 6, 8, 10",
+       color = "Perfiles libres")
+
+print(plot_clustree_grupos)
+
+ruta_clustree_grupos <- file.path(base_salida, paste0("IST_original_clustree_etiquetas_final.png"))
+ggsave(filename = ruta_clustree_grupos, 
+       plot = plot_clustree_grupos, 
+       width = 10, 
+       height = 8, 
+       dpi = 300, 
+       bg = "white") 
+```
+
+# Dataset thin_75
+
+```{r}
+merged_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
+merged_thin75 <- readRDS(merged_rds)
+
+merged_thin75$IST_thin_75_nclusts6 <- as.factor(traducir_etiquetas(as.character(merged_thin75$IST_thin_75_nclusts6)))
+merged_thin75$IST_thin_75_nclusts8 <- as.factor(traducir_etiquetas(as.character(merged_thin75$IST_thin_75_nclusts8)))
+merged_thin75$IST_thin_75_nclusts10 <- as.factor(traducir_etiquetas(as.character(merged_thin75$IST_thin_75_nclusts10)))
+
+#ruta marcadores
+base_markers <- "~/Documents/Master/TFM/Resultados_Algoritmos_v1/Resultados_thin_75"
+
+#ruta salida plots
+base_salida <- file.path(base_markers, paste0("Plots"))
+```
+
+## Clustree - Etiquetas originales
+
+```{r, fig.height=4, fig.width=8}
+col_clusters <- c("IST_thin_75_nclusts6", 
+                     "IST_thin_75_nclusts8", 
+                     "IST_thin_75_nclusts10")
+
+# Extraemos solo esa parte de la metadata
+merged_clust <- merged_thin75@meta.data[, col_clusters]
+conteo_k <- merged_clust %>% 
+  summarise(across(all_of(col_clusters), n_distinct))
+
+print(conteo_k)
+
+plot_clustree <- clustree(merged_clust, prefix = "IST_thin_75_nclusts", layout = "sugiyama") +
+  labs(title = "Árbol de Clustering: InSituType",
+       color = "Resolución")
+
+# Visualizamos el árbol perfecto
+print(plot_clustree)
+
+ruta_clustree_original <- file.path(base_salida, paste0("IST_thin_75_clustree_etiquetas_originales.png"))
+ggsave(filename = ruta_clustree_original, 
+       plot = plot_clustree, 
+       width = 10, 
+       height = 8, 
+       dpi = 300, 
+       bg = "white")      
+```
+
+## 6 Perfiles libres
+
+### UMAP
+
+```{r}
+col_cluster <- 'IST_thin_75_nclusts6'
+plot_umap_ist(merged_thin75, col_cluster)
+
+ruta_umap_original <- file.path(base_salida, paste0(col_cluster, "_umap1.png"))
+guardar_umap_ist(merged_thin75, col_cluster, ruta_umap_original)
+```
+
+### Cantidad de células por tipo
+
+```{r}
+tabla_conteos_ist(merged_thin75, col_cluster)
+```
+
+### Marcadores por cluster
+
+```{r}
+ruta_markers <- file.path(base_markers, paste0("Marcadores_", col_cluster, ".txt"))
+resumen_marcadores_ist(ruta_markers)
+```
+
+### Perfil
+
+```{r}
+#| out-width: "80%"  # Usa porcentajes de la pantalla
+
+ruta_heatmap <- file.path(base_salida, paste0(col_cluster, "_heatmap.png"))
+
+perfil_heatmap <- perfil_heatmap_ist(merged_thin75, col_cluster,
+                   titulo = paste("Perfil de expresión promedio -", col_cluster),
+                   ruta_archivo = ruta_heatmap)
+
+knitr::include_graphics(ruta_heatmap)
+```
+
+### Marcador PanCK
+
+```{r}
+boxplots_panck_ist(merged_thin75, col_cluster)
+ruta_panck <- file.path(base_salida, paste0(col_cluster, "_panck.png"))
+guardar_panck_ist(merged_thin75, col_cluster, ruta_panck)
+
+```
+
+### UMAP con todos los labels
+
+```{r}
+mapa_grupos <- c(
+  "a" = "Tumor",
+  "b" = "Tumor",
+  "c" = "Tumor",
+  "d" = "Estroma",
+  "e" = "Tumor",
+  "f" = "Tumor",
+  "Plasb" = "Plas",
+  "B-cell" = "cel. B"
+)
+nueva_col <- 'IST_thin_75_nclusts6_grupo'
+merged_thin75 <- recode_cluster_grupos(merged_thin75, col_cluster, nueva_col, mapa_grupos) 
+plot_umap_ist(merged_thin75, nueva_col)
+
+ruta_umap_original <- file.path(base_salida, paste0(nueva_col, "_umap1.png"))
+guardar_umap_ist(merged_thin75, nueva_col, ruta_umap_original)
+```
+
+### Cantidad de células post etiquetado
+
+```{r}
+tabla_conteos_ist(merged_thin75, nueva_col)
+```
+
+## 8 Perfiles libres
+
+### UMAP
+
+```{r}
+col_cluster <- 'IST_thin_75_nclusts8'
+plot_umap_ist(merged_thin75, col_cluster)
+
+ruta_umap_original <- file.path(base_salida, paste0(col_cluster, "_umap1.png"))
+guardar_umap_ist(merged_thin75, col_cluster, ruta_umap_original)
+```
+
+### Cantidad de células por tipo
+
+```{r}
+tabla_conteos_ist(merged_thin75, col_cluster)
+```
+
+### Marcadores por cluster
+
+```{r}
+ruta_markers <- file.path(base_markers, paste0("Marcadores_", col_cluster, ".txt"))
+resumen_marcadores_ist(ruta_markers)
+```
+
+### Perfil
+
+```{r}
+#| out-width: "80%"  # Usa porcentajes de la pantalla
+
+ruta_heatmap <- file.path(base_salida, paste0(col_cluster, "_heatmap.png"))
+
+perfil_heatmap <- perfil_heatmap_ist(merged_thin75, col_cluster,
+                   titulo = paste("Perfil de expresión promedio -", col_cluster),
+                   ruta_archivo = ruta_heatmap)
+
+knitr::include_graphics(ruta_heatmap)
+```
+
+### Marcador PanCK
+
+```{r}
+boxplots_panck_ist(merged_thin75, col_cluster)
+ruta_panck <- file.path(base_salida, paste0(col_cluster, "_panck.png"))
+guardar_panck_ist(merged_thin75, col_cluster, ruta_panck)
+```
+
+### UMAP con todos los labels
+
+```{r}
+mapa_grupos <- c(
+  "b" = "Tumor",
+  "c" = "Tumor",
+  "d" = "Tumor",
+  "f" = "Tumor",
+  "h" = "Tumor",
+  "a" = "Tumor",
+  "e" = "Estroma",
+  "g" = "Epit",
+  "Plasb" = "Plas",
+  "B-cell" = "cel. B"
+
+)
+nueva_col <- 'IST_thin_75_nclusts8_grupo'
+merged_thin75 <- recode_cluster_grupos(merged_thin75, col_cluster, nueva_col, mapa_grupos) 
+plot_umap_ist(merged_thin75, nueva_col)
+
+ruta_umap_original <- file.path(base_salida, paste0(nueva_col, "_umap1.png"))
+guardar_umap_ist(merged_thin75, nueva_col, ruta_umap_original)
+```
+
+### Cantidad de células post etiquetado
+
+```{r}
+tabla_conteos_ist(merged_thin75, nueva_col)
+```
+
+## 10 Perfiles libres
+
+### UMAP
+
+```{r}
+col_cluster <- 'IST_thin_75_nclusts10'
+plot_umap_ist(merged_thin75, col_cluster)
+
+ruta_umap_original <- file.path(base_salida, paste0(col_cluster, "_umap1.png"))
+guardar_umap_ist(merged_thin75, col_cluster, ruta_umap_original)
+```
+
+### Cantidad de células por tipo
+
+```{r}
+tabla_conteos_ist(merged_thin75, col_cluster)
+```
+
+### Marcadores por cluster
+
+```{r}
+ruta_markers <- file.path(base_markers, paste0("Marcadores_", col_cluster, ".txt"))
+resumen_marcadores_ist(ruta_markers)
+```
+
+### Perfil
+
+```{r}
+#| out-width: "80%"  # Usa porcentajes de la pantalla
+
+ruta_heatmap <- file.path(base_salida, paste0(col_cluster, "_heatmap.png"))
+
+perfil_heatmap <- perfil_heatmap_ist(merged_thin75, col_cluster,
+                   titulo = paste("Perfil de expresión promedio -", col_cluster),
+                   ruta_archivo = ruta_heatmap)
+
+knitr::include_graphics(ruta_heatmap)
+```
+
+### Marcador PanCK
+
+```{r}
+boxplots_panck_ist(merged_thin75, col_cluster)
+ruta_panck <- file.path(base_salida, paste0(col_cluster, "_panck.png"))
+guardar_panck_ist(merged_thin75, col_cluster, ruta_panck)
+
+```
+
+### UMAP con todos los labels
+
+```{r}
+mapa_grupos <- c(
+  "a" = "Tumor",
+  "c" = "Tumor",
+  "d" = "Tumor",
+  "f" = "Tumor",
+  "g" = "Tumor",
+  "h" = "Tumor",
+  "i" = "Tumor",
+  "e" = "Tumor",
+  "j" = "Estroma",
+  "b" = "Epit", 
+  "Plasb" = "Plas",
+  "B-cell" = "cel. B"
+
+  )
+nueva_col <- 'IST_thin_75_nclusts10_grupo'
+merged_thin75 <- recode_cluster_grupos(merged_thin75, col_cluster, nueva_col, mapa_grupos) 
+plot_umap_ist(merged_thin75, nueva_col)
+
+ruta_umap_original <- file.path(base_salida, paste0(nueva_col, "_umap1.png"))
+guardar_umap_ist(merged_thin75, nueva_col, ruta_umap_original)
+```
+
+### Cantidad de células post etiquetado
+
+```{r}
+tabla_conteos_ist(merged_thin75, nueva_col)
+```
+
+## Clustree - Post Etiquetas
+
+```{r, fig.height=4, fig.width=8}
+merged_thin75$IST_grupo_6  <- as.character(merged_thin75$IST_thin_75_nclusts6_grupo)
+merged_thin75$IST_grupo_8  <- as.character(merged_thin75$IST_thin_75_nclusts8_grupo)
+merged_thin75$IST_grupo_10 <- as.character(merged_thin75$IST_thin_75_nclusts10_grupo)
+
+merged_clust <- merged_thin75@meta.data[, c("IST_grupo_6", "IST_grupo_8", "IST_grupo_10")]
+conteo_k <- merged_clust %>% 
+  summarise(across(all_of(c("IST_grupo_6", "IST_grupo_8", "IST_grupo_10")), n_distinct))
+
+print(conteo_k)
+plot_clustree_grupos <- clustree(merged_thin75, prefix = "IST_grupo_", layout = "sugiyama") +
+  labs(title = "Árbol de Clustering: Post Etiquetas",
+       subtitle = "Perfiles libres = 6, 8, 10",
+       color = "Resolución")
+
+ruta_clustree_grupos <- file.path(base_salida, paste0("IST_thin_75_clustree_etiquetas_final.png"))
+ggsave(filename = ruta_clustree_grupos, 
+       plot = plot_clustree_grupos, 
+       width = 10, 
+       height = 8, 
+       dpi = 300, 
+       bg = "white")
+
+print(plot_clustree_grupos)
+```
+
+# Clustree entre datasets
+
+## 6 Perfiles libres
+
+```{r, fig.height=4, fig.width=8}
+plot_clustree_comparativo <- plot_clustree_comparativo_ist(merged, merged_thin75, 
+                              "IST_original_nclusts6_grupo", 
+                              "IST_thin_75_nclusts6_grupo", 
+                              k_val = 6)
+
+ruta_clustree_comp <- file.path(base_salida, paste0("ISTnclust6_clustree_comparativo.png"))
+ggsave(filename = ruta_clustree_comp, 
+       plot = plot_clustree_comparativo, 
+       width = 10, 
+       height = 6, 
+       dpi = 300, 
+       bg = "white")
+
+print(plot_clustree_comparativo)
+```
+
+## 8 Perfiles libres
+
+```{r, fig.height=4, fig.width=8}
+plot_clustree_comparativo <- plot_clustree_comparativo_ist(merged, merged_thin75, 
+                              "IST_original_nclusts8_grupo", 
+                              "IST_thin_75_nclusts8_grupo", 
+                              k_val = 8)
+
+ruta_clustree_comp <- file.path(base_salida, paste0("ISTnclust8_clustree_comparativo_.png"))
+ggsave(filename = ruta_clustree_comp, 
+       plot = plot_clustree_comparativo, 
+       width = 10, 
+       height = 6, 
+       dpi = 300, 
+       bg = "white")
+
+print(plot_clustree_comparativo)
+```
+
+## 10 Perfiles libres
+
+```{r, fig.height=4, fig.width=8}
+plot_clustree_comparativo <- plot_clustree_comparativo_ist(merged, merged_thin75, 
+                              "IST_original_nclusts10_grupo", 
+                              "IST_thin_75_nclusts10_grupo", 
+                              k_val = 10)
+
+ruta_clustree_comp <- file.path(base_salida, paste0("ISTnclust10_Clustree_comparativo.png"))
+ggsave(filename = ruta_clustree_comp, 
+       plot = plot_clustree_comparativo, 
+       width = 10, 
+       height = 6, 
+       dpi = 300, 
+       bg = "white") 
+
+print(plot_clustree_comparativo)
+```
+
+### Guardado de etiquetas
+
+```{r}
+meta_ist_orig <- merged@meta.data %>% 
+  select(ends_with("_grupo") & starts_with("IST")) %>% 
+  rownames_to_column("cell_ID")
+
+meta_ist_thin <- merged_thin75@meta.data %>% 
+  select(ends_with("_grupo") & starts_with("IST")) %>% 
+  rownames_to_column("cell_ID")
+
+saveRDS(list(orig = meta_ist_orig, thin = meta_ist_thin), 
+        "~/Documents/Master/TFM/Resultados_Algoritmos_v1/temp_ist_labels.rds")
+```
+
+# FOV
+
+```{r mapas-espaciales,results='asis', warning=FALSE, message=FALSE}
+# 1. Definimos las columnas y LA NUEVA RUTA DE GUARDADO
+obj_spat <- merged
+groupbys <- c("IST_original_nclusts10_grupo")
+col_cluster <- paleta_maestra
+col_muestra <- "orig.ident"
+col_fov <- "fov"
+
+# --- AJUSTE DE RUTA ---
+dir_spatial <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/spatial_maps/IST")
+if (!dir.exists(dir_spatial)) dir.create(dir_spatial, recursive = TRUE)
+
+# Inicializar lista para guardar
+plots_by_groupby_fov <- list()
+pad_frac <- 0.05
+
+# 2. Generación de Gráficos
+for (img in Images(obj_spat)) {
+  
+  coords <- GetTissueCoordinates(obj_spat[[img]])
+  if (!"cell" %in% colnames(coords)) coords$cell <- rownames(coords)
+  
+  md <- obj_spat@meta.data
+  md_img <- md[rownames(md) %in% coords$cell, , drop = FALSE]
+  if (nrow(md_img) == 0) next
+  
+  muestras <- unique(md_img[[col_muestra]])
+  
+  for (muestra in muestras) {
+    md_muestra <- md_img[md_img[[col_muestra]] == muestra, , drop = FALSE]
+    
+    # ORDENAMOS los FOV numéricamente (1, 2, 3... 10, 11)
+    fovs <- sort(unique(as.numeric(md_muestra[[col_fov]]))) 
+    
+    for (fov_id in fovs) {
+      cells <- rownames(md_muestra)[md_muestra[[col_fov]] == fov_id]
+      cells <- intersect(cells, coords$cell)
+      if (length(cells) == 0) next
+      
+      cc <- coords[coords$cell %in% cells, , drop = FALSE]
+      if (nrow(cc) == 0) next
+      
+      # Coordenadas
+      ylim <- range(cc$x, na.rm = TRUE)
+      xlim <- range(cc$y, na.rm = TRUE)
+      xpad <- diff(xlim) * pad_frac
+      ypad <- diff(ylim) * pad_frac
+      
+      # Clave única y ordenada
+      key <- paste(muestra, "FOV", sprintf("%02d", fov_id), sep = "_")
+      
+      for (gb in groupbys) {
+        if (!gb %in% colnames(md_muestra)) next
+        
+        etiquetas_plot <- unique(as.character(md_muestra[cells, gb, drop = TRUE]))
+        etiquetas_plot <- etiquetas_plot[!is.na(etiquetas_plot)]
+        cols_use <- col_cluster[names(col_cluster) %in% etiquetas_plot]
+        
+        p <- ImageDimPlot(
+          obj_spat,
+          fov = img,
+          group.by = gb,
+          axes = FALSE, 
+          cells = cells,
+          size = 2,
+          cols = cols_use
+        ) +
+          ggtitle(paste0("Muestra: ", muestra, " | FOV: ", fov_id))
+        
+        # Corrección del volteo de coordenadas
+        if (!is.null(p$data)) p$data <- transform(p$data, x = y, y = x)
+        
+        p <- p + 
+          coord_fixed(
+            ratio = 1,
+            xlim = c(ylim[1] - ypad, ylim[2] + ypad),
+            ylim = c(xlim[1] - xpad, xlim[2] + xpad),
+            expand = FALSE
+          ) + 
+          scale_x_continuous(name = NULL, breaks = NULL, labels = NULL) +
+          scale_y_continuous(name = NULL, breaks = NULL, labels = NULL) +
+          theme_void() + 
+          theme(
+            plot.title = element_text(face = "bold", hjust = 0.5, size = 14, color = "white"),
+            panel.background = element_rect(fill = "black", color = NA),
+            plot.background = element_rect(fill = "black", color = NA),
+            legend.background = element_rect(fill = "black", color = NA),
+            legend.key = element_rect(fill = "black", color = NA),
+            legend.text = element_text(color = "white", size = 10),
+            legend.title = element_text(color = "white", size = 12, face = "bold"),
+            legend.position = "right",
+            legend.justification = "center", 
+            legend.margin = margin(t = 0, r = 10, b = 0, l = -20)
+          ) +
+      
+          guides(
+            fill = guide_legend(
+              ncol = 2,
+              override.aes = list(size = 4) 
+            ))
+        
+        if (is.null(plots_by_groupby_fov[[gb]])) plots_by_groupby_fov[[gb]] <- list()
+        plots_by_groupby_fov[[gb]][[key]] <- p
+      }
+    }
+  }
+}
+
+# 3. Guardar las imágenes y compilar el HTML
+for (gb in names(plots_by_groupby_fov)) {
+  keys_ordenadas <- sort(names(plots_by_groupby_fov[[gb]]))
+  cat(paste0("\n## Mapas Espaciales - ", gb, "\n\n"))
+  
+  for (key in keys_ordenadas) {
+    # Usamos la nueva ruta estricta
+    out_png <- file.path(dir_spatial, paste0(key, ".png"))
+    
+    ggsave(
+      filename = out_png,
+      plot = plots_by_groupby_fov[[gb]][[key]],
+      width = 8, 
+      height = 8, 
+      dpi = 300, 
+      bg = "black" 
+    )
+    
+    cat(paste0("### ", key, "\n\n"))
+    
+    # Inyectamos la imagen guardada al HTML de forma compatible
+    cat(sprintf("![](%s)\n\n", out_png))
+    cat("---\n\n")
+  }
+}
+```
