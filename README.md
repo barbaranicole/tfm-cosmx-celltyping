@@ -69,7 +69,7 @@ Los reportes renderizados con los resultados están disponibles en: *(pendiente 
 
 - R 4.4.2
 - Quarto 1.8.27
-- Paquetes de R: `Seurat`, `InSituType`, `clustree`, `mclust`, `tidyverse`, `patchwork`, `pheatmap`, `DT`, `kableExtra`, `knitr`
+- Paquetes de R: `Seurat`, `InSituType`, `clustree`, `mclust`, `tidyverse`, `patchwork`, `pheatmap`, `DT`, `kableExtra`, `knitr`, `here`
 
 ## Licencia
 
