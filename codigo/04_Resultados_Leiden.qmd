@@ -31,7 +31,7 @@ source("funciones.R")
 # Dataset original
 
 ```{r}
-merged_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
+merged_rds   <- here::here("Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
 merged <- readRDS(merged_rds)
 
 #clusters como factor
@@ -41,7 +41,7 @@ merged$Leiden_original_res1 <- as.factor(merged$Leiden_original_res1)
 merged$Leiden_original_res1.2 <- as.factor(merged$Leiden_original_res1.2)
 
 #ruta marcadores
-base_markers <- "~/Documents/Master/TFM/Resultados_Algoritmos_v1/Resultados_original"
+base_markers <- here::here("Resultados_Algoritmos_v1/Resultados_original")
 #ruta salida plots
 base_salida <- file.path(base_markers, paste0("Plots"))
 ```
@@ -392,7 +392,7 @@ ggsave(filename = ruta_clustree_grupos,
 # Dataset thin_75
 
 ```{r}
-merged_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
+merged_rds   <- here::here("Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
 merged_thin75 <- readRDS(merged_rds)
 
 merged_thin75$Leiden_thin_75_res0.8 <- as.factor(merged_thin75$Leiden_thin_75_res0.8)
@@ -400,7 +400,7 @@ merged_thin75$Leiden_thin_75_res1 <- as.factor(merged_thin75$Leiden_thin_75_res1
 merged_thin75$Leiden_thin_75_res1.2 <- as.factor(merged_thin75$Leiden_thin_75_res1.2)
 
 #ruta marcadores
-base_markers <- "~/Documents/Master/TFM/Resultados_Algoritmos_v1/Resultados_thin_75"
+base_markers <- here::here("Resultados_Algoritmos_v1/Resultados_thin_75")
 #ruta salida plots
 base_salida <- file.path(base_markers, paste0("Plots"))
 ```
@@ -799,7 +799,7 @@ meta_leiden_thin <- merged_thin75@meta.data %>%
 
 # Guardamos ambas en una lista
 saveRDS(list(orig = meta_leiden_orig, thin = meta_leiden_thin), 
-        "~/Documents/Master/TFM/Resultados_Algoritmos_v1/temp_leiden_labels.rds")
+        here::here("Resultados_Algoritmos_v1/temp_leiden_labels.rds"))
 ```
 
 # Fov
@@ -813,7 +813,7 @@ col_muestra <- "orig.ident"
 col_fov <- "fov"
 
 # --- AJUSTE DE RUTA ---
-dir_spatial <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/spatial_maps/Leiden")
+dir_spatial <- here::here("Resultados_Algoritmos_v1/spatial_maps/Leiden")
 if (!dir.exists(dir_spatial)) dir.create(dir_spatial, recursive = TRUE)
 
 # Inicializar lista para guardar

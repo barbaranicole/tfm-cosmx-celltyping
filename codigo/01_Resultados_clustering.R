@@ -7,8 +7,8 @@
 library(dplyr)
 
 # --- CONFIGURACIÓN ---
-base_dir   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/")
-out_txt    <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/clustering_resultados.txt")
+base_dir   <- here::here("Resultados_Algoritmos_v1/")
+out_txt    <- here::here("Resultados_Algoritmos_v1/clustering_resultados.txt")
 versiones  <- c("original", "thin_75")
 
 # Lista de archivos: path, metodo (Leiden / IST), version (original / thin_95 / thin_75)

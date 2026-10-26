@@ -12,8 +12,8 @@ library(dplyr)
 
 # --- CONFIGURACIÓN ---
 # Cambiar solo esta ruta al RDS que quieras revisar
-merged_rds  <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
-base_salida <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1")
+merged_rds  <- here::here("Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
+base_salida <- here::here("Resultados_Algoritmos_v1")
 
 # --- CARGA DEL OBJETO Y DETECCIÓN DE COLUMNAS DE CLUSTERING ---
 merged <- readRDS(merged_rds)

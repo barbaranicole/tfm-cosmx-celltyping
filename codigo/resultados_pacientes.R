@@ -5,10 +5,10 @@ library(tidyverse)
 
 #### datos pre control de calidad ####
 
-base <- "~/Documents/Master/TFM/Resultados_Algoritmos_v1"
+base <- here::here("Resultados_Algoritmos_v1")
 base_salida <- file.path(base, "Resultados_etiquetado")
 
-noqc_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/datos_histograma.rds")
+noqc_rds   <- here::here("Resultados_Algoritmos_v1/datos_histograma.rds")
 merged_noqc <- readRDS(noqc_rds)
 head(merged_noqc)
 merged_noqc %>% group_by(dataset) %>% summarise(
@@ -55,12 +55,12 @@ plot_hist_nft
 
 #### datos post control de calidad ####
 
-merged_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
+merged_rds   <- here::here("Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
 merged <- readRDS(merged_rds)
 meta_original <- merged@meta.data
 meta_original$Version <- "Original"
 
-merged_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
+merged_rds   <- here::here("Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
 merged_thin75 <- readRDS(merged_rds)
 meta_thin <- merged_thin75@meta.data
 meta_thin$Version <- "Thin75"
@@ -96,7 +96,7 @@ plot_hist_nft <- ggplot(meta_combinada, aes(x = nFeature_RNA, fill = orig.ident,
 plot_hist_nft
 
 ### Anadir clustering ###
-resultados <- read.table("~/Documents/Master/TFM/Resultados_Algoritmos_v1/clustering_etiquetado.txt", 
+resultados <- read.table(here::here("Resultados_Algoritmos_v1/clustering_etiquetado.txt"), 
                          header = TRUE, 
                          sep = "\t",
                          row.names = 1)

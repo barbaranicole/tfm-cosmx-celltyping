@@ -6,12 +6,12 @@ library(mclust)
 box::use(./funciones[mat_confusion])
 box::use(./funciones[guardar_matriz])
 
-resultados <- read.table("~/Documents/Master/TFM/Resultados_Algoritmos_v1/clustering_etiquetado.txt", 
+resultados <- read.table(here::here("Resultados_Algoritmos_v1/clustering_etiquetado.txt"), 
                       header = TRUE, 
                       sep = "\t",
                       row.names = 1)
 
-base <- "~/Documents/Master/TFM/Resultados_Algoritmos_v1"
+base <- here::here("Resultados_Algoritmos_v1")
 base_salida <- file.path(base, "Matriz_confusion")
 
 ### --- INSITUTYPE --- ###

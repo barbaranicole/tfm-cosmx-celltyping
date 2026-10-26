@@ -3,12 +3,12 @@ library(dplyr)
 library(patchwork)
 
 # Extraccion de metadatos
-merged_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
+merged_rds   <- here::here("Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
 merged <- readRDS(merged_rds)
 meta_original <- merged@meta.data
 meta_original$Version <- "Original"
 
-merged_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
+merged_rds   <- here::here("Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
 merged_thin75 <- readRDS(merged_rds)
 meta_thin <- merged_thin75@meta.data
 meta_thin$Version <- "Thin75"
@@ -49,7 +49,7 @@ plots <- (plot_hist_ncount + plot_hist_nft) +
   plot_layout(guides = "collect") & 
   theme(legend.position = "bottom")
 
-dir_plots <- "~/Documents/Master/TFM/Plots" 
+dir_plots <- here::here("Plots") 
 nombre_qc <- paste0("QC", ".png")
 ruta_qc <- file.path(dir_plots, nombre_qc)
 png(ruta_qc, width = 6000, height = 3000, res = 300) 
@@ -57,7 +57,7 @@ print(plots)
 dev.off()
 cat("-> QC guardada:", ruta_qc, "\n")
 
-noqc_rds   <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/datos_histograma.rds")
+noqc_rds   <- here::here("Resultados_Algoritmos_v1/datos_histograma.rds")
 merged_noqc <- readRDS(noqc_rds)
 
 plot_hist_ncount <- ggplot(merged_noqc, aes(x = nCount_RNA, fill = dataset, color = dataset)) +
@@ -78,7 +78,7 @@ plots <- (plot_hist_ncount + plot_hist_nft) +
   plot_layout(guides = "collect") & 
   theme(legend.position = "bottom")
 
-dir_plots <- "~/Documents/Master/TFM/Plots" 
+dir_plots <- here::here("Plots") 
 nombre_qc <- paste0("noQC", ".png")
 ruta_qc <- file.path(dir_plots, nombre_qc)
 png(ruta_qc, width = 6000, height = 3000, res = 300) 

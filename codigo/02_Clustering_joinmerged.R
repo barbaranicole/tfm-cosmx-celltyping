@@ -8,8 +8,8 @@
 library(Seurat)
 
 # --- CONFIGURACIÓN ---
-base_dir    <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/")
-merged_txt  <- path.expand("~/Documents/Master/TFM/Resultados_Algoritmos_v1/clustering_resultados.txt")
+base_dir    <- here::here("Resultados_Algoritmos_v1/")
+merged_txt  <- here::here("Resultados_Algoritmos_v1/clustering_resultados.txt")
 versiones   <- c("original", "thin_75")
 # Nombre del RDS de salida:
 sufijo_salida <- "joinmerged_clustering"
