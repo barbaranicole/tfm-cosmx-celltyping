@@ -1,17 +1,32 @@
-# ==========================================
-# UNIR RESULTADOS TXT EN UN SOLO ARCHIVO
-# Lee todos los TXT de clustering (Leiden e InSituType): original, thin_95 y thin_75.
-# Une por cell_ID y escribe un único TXT con columnas separadas por método y versión.
-# ==========================================
+# ==============================================================================
+# 01_Resultados_clustering.R
+# ------------------------------------------------------------------------------
+# Descripción: Une en una sola tabla los resultados de clustering de Leiden e
+#              InSituType de ambos escenarios (original y thin_75). Cada columna
+#              corresponde a un método, escenario y parámetro.
+#
+# Entradas:    Resultados_Algoritmos_v1/Leiden/<escenario>/*_res<r>_<fecha>.txt
+#              Resultados_Algoritmos_v1/Insitutype/<escenario>/*_nclusts<n>_<fecha>.txt
+#              (lista fija en `lista_archivos`; si se vuelven a ejecutar los
+#              métodos, hay que actualizar los nombres con la nueva fecha)
+# Salidas:     Resultados_Algoritmos_v1/clustering_resultados.txt
+#              Columnas: cell_ID, Leiden_<escenario>_res<r>,
+#              IST_<escenario>_nclusts<n> e IST_<escenario>_nclusts<n>_conf
+# Requiere:    Resultados de Metodos/02_Seurat.R y Metodos/03_IST.R
+# Siguiente:   02_Clustering_joinmerged.R
+# ==============================================================================
 
 library(dplyr)
 
-# --- CONFIGURACIÓN ---
+# ==========================================
+# 0. CONFIGURACIÓN
+# ==========================================
 base_dir   <- here::here("Resultados_Algoritmos_v1/")
 out_txt    <- here::here("Resultados_Algoritmos_v1/clustering_resultados.txt")
 versiones  <- c("original", "thin_75")
 
-# Lista de archivos: path, metodo (Leiden / IST), version (original / thin_95 / thin_75)
+# Lista de archivos: path, metodo (Leiden / IST), version (original / thin_75)
+# Leiden: se usan las resoluciones 0.8, 1 y 1.2 (la 0.6 se descartó).
 # Solo archivos de resultados (no Log_*)
 lista_archivos <- list(
   # Leiden - original
@@ -80,7 +95,7 @@ for (j in seq_along(tablas)[-1]) {
 merged_df <- merged_df %>% arrange(cell_ID)
 
 # ==========================================
-# 3. REORDENAR COLUMNAS: cell_ID, Leiden por versión, IST por versión (original, thin_95, thin_75)
+# 3. REORDENAR COLUMNAS: cell_ID, Leiden por versión, IST por versión (original, thin_75)
 # ==========================================
 nms <- names(merged_df)
 id_col <- "cell_ID"

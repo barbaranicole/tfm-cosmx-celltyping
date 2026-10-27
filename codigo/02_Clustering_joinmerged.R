@@ -1,24 +1,40 @@
-# ==========================================
-# Agregar resultados de clustering a cada joinmerged.rds
-# Requiere haber ejecutado antes Resultados_clustering.R (TXT unificado).
-# Lee <version>_joinmerged.rds (no se modifica) y guarda el resultado en
-# <version>_joinmerged_con_clustering.rds.
-# ==========================================
+# ==============================================================================
+# 02_Clustering_joinmerged.R
+# ------------------------------------------------------------------------------
+# Descripción: Añade los clusters de Leiden e InSituType a la metadata del
+#              objeto Seurat de cada escenario (original y thin_75). A partir
+#              de aquí, ambos métodos siguen el mismo procesamiento y análisis.
+#
+# Entradas:    Resultados_Algoritmos_v1/clustering_resultados.txt
+#              Resultados_Algoritmos_v1/<escenario>_joinmerged.rds (no se modifica)
+# Salidas:     Resultados_Algoritmos_v1/<escenario>_joinmerged_clustering.rds
+# Requiere:    01_Resultados_clustering.R
+# Siguiente:   03_Marcadores.R
+# ==============================================================================
 
 library(Seurat)
 
-# --- CONFIGURACIÓN ---
+# ==========================================
+# 0. CONFIGURACIÓN
+# ==========================================
+
 base_dir    <- here::here("Resultados_Algoritmos_v1/")
 merged_txt  <- here::here("Resultados_Algoritmos_v1/clustering_resultados.txt")
 versiones   <- c("original", "thin_75")
 # Nombre del RDS de salida:
 sufijo_salida <- "joinmerged_clustering"
 
-if (!file.exists(merged_txt)) stop("Ejecuta antes Resultados_clustering.R para generar ", merged_txt)
+if (!file.exists(merged_txt)) stop("Ejecuta antes 01_Resultados_clustering.R para generar ", merged_txt)
+# ==========================================
+# 1. LECTURA DE LA TABLA DE CLUSTERING
+# ==========================================
 
-# Leer TXT unificado una sola vez
 annot_full <- read.delim(merged_txt, stringsAsFactors = FALSE)
 if (any(duplicated(annot_full$cell_ID))) annot_full <- annot_full[!duplicated(annot_full$cell_ID), ]
+
+# ==========================================
+# 2. AÑADIR CLUSTERS A CADA OBJETO SEURAT
+# ==========================================
 
 for (version in versiones) {
   rds_path <- file.path(base_dir, paste0(version, "_joinmerged.rds"))

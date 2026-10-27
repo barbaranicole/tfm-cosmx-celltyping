@@ -1,21 +1,32 @@
 #!/usr/bin/env Rscript
-# ==========================================
+# ==============================================================================
 # 03_Marcadores.R
-# Calcula FindAllMarkers para cada columna de clustering en meta.data
-# y guarda SOLO la tabla completa (sin Top10) por resolución/modelo.
-# Pensado para usarse después de 01_Resultados_clustering.R y
-# Clustering_joinmerged.R, sobre cualquier RDS *_joinmerged_clustering.rds.
-# ==========================================
+# ------------------------------------------------------------------------------
+# Descripción: Calcula los genes marcadores (FindAllMarkers, solo positivos,
+#              min.pct = 0.25, logfc.threshold = 0.25) para cada columna de
+#              clustering de Leiden e InSituType y guarda la tabla completa.
+#
+# Uso:         Se ejecuta una vez por escenario, cambiando `merged_rds` en la
+#              sección 0 (original_ o thin_75_joinmerged_clustering.rds).
+#              Si el archivo de marcadores ya existe, se omite.
+# Entradas:    Resultados_Algoritmos_v1/<escenario>_joinmerged_clustering.rds
+# Salidas:     Resultados_Algoritmos_v1/Resultados_<escenario>/Marcadores_<columna>.txt
+# Requiere:    02_Clustering_joinmerged.R
+# Siguiente:   04_Resultados_Leiden.qmd y 04_Resultados_IST.qmd
+# ==============================================================================
 
 library(Seurat)
-library(dplyr)
 
-# --- CONFIGURACIÓN ---
+# ==========================================
+# 0. CONFIGURACIÓN
+# ==========================================
 # Cambiar solo esta ruta al RDS que quieras revisar
 merged_rds  <- here::here("Resultados_Algoritmos_v1/thin_75_joinmerged_clustering.rds")
 base_salida <- here::here("Resultados_Algoritmos_v1")
 
-# --- CARGA DEL OBJETO Y DETECCIÓN DE COLUMNAS DE CLUSTERING ---
+# ==========================================
+# 1. CARGA DEL OBJETO Y DETECCIÓN DE COLUMNAS DE CLUSTERING
+# ==========================================
 merged <- readRDS(merged_rds)
 nms    <- colnames(merged@meta.data)
 
@@ -49,7 +60,10 @@ cat("RDS:", basename(merged_rds),
     "| Carpeta versión:", dir_version, "\n")
 cat("Columnas de clustering:", paste(columnas_clustering, collapse = ", "), "\n\n")
 
-# --- FindAllMarkers POR COLUMNA (solo tabla completa) ---
+# ==========================================
+# 2. FindAllMarkers POR COLUMNA (solo tabla completa)
+# ==========================================
+
 for (res_actual in columnas_clustering) {
   nombre_archivo <- paste0("Marcadores_", res_actual, ".txt")
   ruta_salida    <- file.path(dir_version, nombre_archivo)
