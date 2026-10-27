@@ -1,8 +1,28 @@
+# ==============================================================================
+# 06_Confusion.R
+# ------------------------------------------------------------------------------
+# Descripción: Compara las etiquetas de tipo celular entre escenarios, parámetros
+#              y métodos mediante matrices de confusión, y calcula la
+#              concordancia global entre todas las combinaciones con el índice
+#              de Rand ajustado (ARI).
+#
+# Entradas:    Resultados_Algoritmos_v1/clustering_etiquetado.txt
+# Salidas:     Resultados_Algoritmos_v1/Matriz_confusion/<col1>_vs_<col2>_combinado.png
+#              Resultados_Algoritmos_v1/Matriz_confusion/ARI.png
+# Requiere:    05_Labels.R
+# Funciones:   guardar_matriz() y mat_confusion() de funciones.R
+# ==============================================================================
+
 library(dplyr)
 library(pheatmap)
 library(stringr)
 library(ggplot2)
 library(mclust)
+
+# ==========================================
+# 0. CONFIGURACIÓN Y LECTURA DE ETIQUETAS
+# ==========================================
+
 box::use(./funciones[mat_confusion])
 box::use(./funciones[guardar_matriz])
 
@@ -14,18 +34,25 @@ resultados <- read.table(here::here("Resultados_Algoritmos_v1/clustering_etiquet
 base <- here::here("Resultados_Algoritmos_v1")
 base_salida <- file.path(base, "Matriz_confusion")
 
-### --- INSITUTYPE --- ###
-#agregar matriz con numero 
+
+# ==========================================
+# 1. ORIGINAL VS. DEGRADADO (mismo método y parámetro)
+# ==========================================
+
+# InSituType
 guardar_matriz(resultados, "IST_original_nclusts6", "IST_thin_75_nclusts6", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "IST_original_nclusts8", "IST_thin_75_nclusts8", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "IST_original_nclusts10", "IST_thin_75_nclusts10", base_salida, mostrar_conteo = FALSE)
 
-### --- LEIDEN --- ###
+# Leiden
 guardar_matriz(resultados, "Leiden_original_res0.8", "Leiden_thin_75_res0.8", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "Leiden_original_res1", "Leiden_thin_75_res1", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "Leiden_original_res1.2", "Leiden_thin_75_res1.2", base_salida, mostrar_conteo = FALSE)
 
-### --- ORIGINAL --- ###
+# ==========================================
+# 2. ENTRE PARÁMETROS DEL MISMO MÉTODO: ESCENARIO ORIGINAL
+# ==========================================
+
 guardar_matriz(resultados, "Leiden_original_res0.8", "Leiden_original_res1", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "Leiden_original_res0.8", "Leiden_original_res1.2", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "Leiden_original_res1", "Leiden_original_res1.2", base_salida, mostrar_conteo = FALSE)
@@ -35,8 +62,10 @@ guardar_matriz(resultados, "IST_original_nclusts8", "IST_original_nclusts10", ba
 
 guardar_matriz(resultados, "IST_original_nclusts10", "IST_original_nclusts8", base_salida, mostrar_conteo = FALSE)
 
+# ==========================================
+# 3. ENTRE PARÁMETROS DEL MISMO MÉTODO: ESCENARIO DEGRADADO
+# ==========================================
 
-### --- THIN 75 --- ###
 guardar_matriz(resultados, "Leiden_thin_75_res0.8", "Leiden_thin_75_res1", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "Leiden_thin_75_res0.8", "Leiden_thin_75_res1.2", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "Leiden_thin_75_res1", "Leiden_thin_75_res1.2", base_salida, mostrar_conteo = FALSE)
@@ -44,17 +73,21 @@ guardar_matriz(resultados, "IST_thin_75_nclusts6", "IST_thin_75_nclusts8", base_
 guardar_matriz(resultados, "IST_thin_75_nclusts6", "IST_thin_75_nclusts10", base_salida, mostrar_conteo = FALSE)
 guardar_matriz(resultados, "IST_thin_75_nclusts8", "IST_thin_75_nclusts10", base_salida, mostrar_conteo = FALSE)
 
-### --- OTROS --- ###
+# ==========================================
+# 4. ENTRE MÉTODOS (Leiden res 1.2 vs. InSituType 10 perfiles)
+# ==========================================
+
 guardar_matriz(resultados, "Leiden_original_res1.2", "IST_original_nclusts10", base_salida, mostrar_conteo = FALSE)
 
-### --- ARI --- ###
-# dejar escala en 0.5
+# ==========================================
+# 5. CONCORDANCIA GLOBAL (ARI)
+# ==========================================
 # 1. Crear la matriz inicial (llena de 1s para la diagonal)
 columnas <- colnames(resultados)
 matriz_ari <- matrix(1, nrow = length(columnas), ncol = length(columnas),
                      dimnames = list(columnas, columnas))
 
-# 2. CALCULAR LOS VALORES ARI (Esta es la parte que faltaba)
+# 2. Calcular los valores ARI para cada par de columnas
 for (i in 1:(length(columnas) - 1)) {
   for (j in (i + 1):length(columnas)) {
     # print(paste(columnas[i], columnas[j])) # Opcional: para ver el progreso
@@ -126,6 +159,9 @@ mat_plot <- pheatmap(matriz_ari,
 file_png <- paste0("ARI.png")
 filename <- file.path(base_salida, file_png)
 
+# Nota: pheatmap ya guarda ARI.png arriba (8 pulgadas de alto); este ggsave
+# lo sobrescribe con 10 pulgadas de alto. La versión final es esta.
+
 ggsave(filename = filename, 
        plot = mat_plot, 
        bg = "white",
@@ -133,7 +169,13 @@ ggsave(filename = filename,
        height = 10,      
        dpi = 300)
 
-#evaluar sin tumor
+# ==========================================
+# 6. ANÁLISIS EXPLORATORIO: ARI SIN CÉLULAS TUMORALES
+# ==========================================
+# Recalcula el ARI excluyendo las células etiquetadas como "Tumor" en alguna
+# columna. Solo se muestra en pantalla (no se guarda) y no forma parte de los
+# resultados finales.
+
 resultados_sin_tumor <- resultados %>% filter_all(all_vars(. != 'Tumor'))
 dim(resultados)
 dim(resultados_sin_tumor)
@@ -160,5 +202,3 @@ pheatmap(matriz_ari,
          color = color,
          breaks = breaks,
          main = "Matriz de Similitud (ARI) entre métodos de Clustering - Sin tumor")
-
-43529/442342 * 100
