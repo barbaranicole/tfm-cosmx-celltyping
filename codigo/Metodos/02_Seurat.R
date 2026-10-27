@@ -1,7 +1,26 @@
 #!/usr/bin/env Rscript
+# ==============================================================================
+# 02_Seurat.R
+# ------------------------------------------------------------------------------
+# Descripción: Clustering no supervisado con el algoritmo de Leiden (Seurat).
+#              Construye el grafo de vecinos sobre el PCA y detecta clusters a
+#              la resolución indicada.
+#
+# Ejecución:   Servidor del laboratorio (por requerimientos de memoria).
+# Uso:         Rscript 02_Seurat.R <input.rds> <dims> <resolution> <dir_salida>
+#              En el TFM: dims = 30; resolution = 0.6, 0.8, 1 y 1.2
+#              (0.6 no se incluyó en el análisis posterior).
+# Entradas:    input.rds  Objeto Seurat integrado (5 pacientes), normalizado y
+#                         con PCA calculado (*_merged.rds).
+# Salidas:     <dir_salida>/<input>_dims<d>_res<r>_<fecha>.txt  cell_ID y cluster
+#              <dir_salida>/Log_<input>_dims<d>_res<r>_<fecha>.txt  registro
+# Siguiente:   01_Resultados_clustering.R
+# ==============================================================================
+
 # ==========================================
 # INICIALIZACIÓN Y LIBRERÍAS
 # ==========================================
+
 options(warn = 1) 
 
 suppressPackageStartupMessages({
@@ -11,9 +30,10 @@ suppressPackageStartupMessages({
 # ==========================================
 # 1. LECTURA DE ARGUMENTOS
 # ==========================================
+
 args <- commandArgs(trailingOnly = TRUE)
 if(length(args) < 4) {
-  stop("Error. Uso: Rscript 01_Seurat_Clustering.R <input_preprocesado.rds> <dims> <resolution> <directorio_salida>")
+  stop("Error. Uso: Rscript 02_Seurat.R <input.rds> <dims> <resolution> <dir_salida>")
 }
 
 in_rds     <- args[1]
@@ -77,6 +97,9 @@ cat("========================================\n")
 # ==========================================
 cat("\n[Seurat] 2. Calculando grafo de vecinos (FindNeighbors)...\n")
 # Nota: Asumimos que RunPCA ya se ejecutó en el objeto de entrada
+# Nota: la semilla de Leiden la controla el argumento random.seed de
+# FindClusters (por defecto Seurat usa 1, ver log), no set.seed().
+
 set.seed(357)
 data <- FindNeighbors(data, dims = 1:dims_val)
 
@@ -101,9 +124,9 @@ cat("========================================\n")
 
 
 # ==========================================
-# 7. GUARDADO DEL OBJETO
+# 7. GUARDADO DE LAS ETIQUETAS
 # ==========================================
-cat("\n[Seurat] 4. Guardando objeto final...\n")
+cat("\n[Seurat] 4. Guardando etiquetas...\n")
 
 resultados <- data.frame(
    cell_ID = colnames(data),

@@ -25,6 +25,29 @@ Los datos son públicos y deben descargarse desde Bruker Spatial Biology (antes 
 
 > **Nota:** la versión degradada de los datos (`thin_75`) se generó mediante un procedimiento interno del laboratorio que no forma parte de este repositorio. El pipeline parte de los objetos ya degradados.
 
+## Preprocesamiento (fuera del pipeline)
+
+Por requerimientos de memoria, los siguientes pasos se ejecutaron en un dispositivo
+del laboratorio y no forman parte de este repositorio:
+
+- Unión de las muestras de los 5 pacientes (Lung5_Rep3, Lung6, Lung9_Rep1,
+  Lung12, Lung13) en un único objeto Seurat: 960 genes, 416.087 células
+  en el escenario original y 398.813 en el degradado (`thin_75`).
+- Control de calidad, normalización, PCA (50 componentes) y UMAP, realizados con
+  el código del laboratorio.
+- Ejecución de Leiden e InSituType mediante los scripts de `codigo/Metodos/`,
+  preparados para recibir parámetros por línea de comandos.
+
+Leiden se ejecutó directamente sobre el objeto Seurat integrado. Para InSituType
+se usó el mismo objeto con las capas de conteos unidas (`JoinLayers`), formato que
+requiere el método. **Ambos métodos se aplicaron sobre las mismas células y genes,
+y a partir de sus resultados todo el análisis (anotación, marcadores, comparación
+y figuras) es idéntico para los dos.**
+
+Los objetos resultantes (`*_joinmerged.rds`) y los datos previos al control de
+calidad (`datos_histograma.rds`, usados solo para las figuras de QC) se recibieron
+ya procesados y son el punto de partida del pipeline local.
+
 ### Perfil de referencia
 
 InSituType utiliza como referencia el perfil **IO_1k** (panel de 960 genes), disponible en el repositorio [Nanostring-Biostats/CosMx-Cell-Profiles](https://github.com/Nanostring-Biostats/CosMx-Cell-Profiles/tree/main/Human/IO_1k). El archivo `IO_1k.profiles.csv` debe descargarse y ubicarse en `codigo/referencia_anotacion/`.

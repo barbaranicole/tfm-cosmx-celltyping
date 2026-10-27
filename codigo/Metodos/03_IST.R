@@ -1,4 +1,27 @@
 #!/usr/bin/env Rscript
+# ==============================================================================
+# 03_IST.R
+# ------------------------------------------------------------------------------
+# Descripción: Clustering semisupervisado con InSituType. Combina perfiles de
+#              referencia fijos con un número de perfiles libres (n_clusts) para
+#              asignar cada célula a una clase, con su probabilidad.
+#
+# Ejecución:   Servidor del laboratorio (por requerimientos de memoria).
+# Uso:         Rscript 03_IST.R <input.rds> <neg_vector.rds> <reference.csv>
+#                               <n_clusts> <dir_salida>
+#              En el TFM: n_clusts = 6, 8 y 10; referencia IO_1k.
+# Entradas:    input.rds       Mismo objeto Seurat que Leiden, con las capas de
+#                              conteos unidas (JoinLayers), formato requerido
+#                              por InSituType (*_joinmerged.rds).
+#              neg_vector.rds  Media de sondas negativas por célula (generado
+#                              en el control de calidad del laboratorio).
+#              reference.csv   Perfiles de referencia (IO_1k.profiles.csv).
+# Salidas:     <dir_salida>/<input>_nclusts<n>_<fecha>.txt  cell_ID, clase y
+#                                                           probabilidad
+#              <dir_salida>/Log_<input>_nclusts<n>_<fecha>.txt  registro
+# Siguiente:   01_Resultados_clustering.R
+# ==============================================================================
+
 # ==========================================
 # INICIALIZACIÓN Y LIBRERÍAS
 # ==========================================
@@ -12,9 +35,10 @@ suppressPackageStartupMessages({
 # ==========================================
 # 1. LECTURA DE ARGUMENTOS
 # ==========================================
+
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 5) {
-  stop("Error. Uso: Rscript 04_IST.R <input.rds> <neg_vector.rds> <reference.csv> <n_clusts> <directorio_salida>")
+  stop("Error. Uso: Rscript 03_IST.R <input.rds> <neg_vector.rds> <reference.csv> <n_clusts> <dir_salida>")
 }
 
 in_rds    <- args[1]
