@@ -22,7 +22,7 @@ box::use(
 )
 
 # ==========================================
-# 1. DICCIONARIO Y PALETA DE COLORES, encima de diccionario_cortos
+# 1. DICCIONARIO Y PALETA DE COLORES
 # ==========================================
 # Abreviaturas de los tipos celulares del perfil IO_1k (usadas en tablas y figuras).
 diccionario_cortos <- c(
@@ -268,7 +268,6 @@ plot_clustree_comparativo_ist <- function(obj_orig, obj_thin, col_orig, col_thin
 #    - col_cluster: nombre de la columna original (ej. "IST_original_nclusts6")
 #    - nueva_col: nombre de la nueva columna (ej. "IST_original_nclusts6_grupo")
 #    - mapa: named vector, p.ej. c("a"="Tumor", "b"="Inmune*")
-
 recode_cluster_grupos <- function(obj, col_cluster, nueva_col, mapa) {
   labels_orig <- as.character(obj@meta.data[[col_cluster]])
   labels_new  <- labels_orig
@@ -300,7 +299,7 @@ guardar_panck_ist <- function(obj, col_cluster, ruta_png) {
 }
 
 # ==========================================
-# 4. MATRICES DE CONFUSIÓN 
+# 4. MATRICES DE CONFUSIÓN (10_Matrices_confusion.R)
 # ==========================================
 # Matrices de confusión entre dos columnas de etiquetas: porcentaje por fila
 # en ambos sentidos y, opcionalmente, conteos absolutos. Título y ejes se
