@@ -1,7 +1,29 @@
+# ==============================================================================
+# 05_Figuras_QC.R
+# ------------------------------------------------------------------------------
+# Descripción: Figuras de control de calidad: distribución del número de
+#              transcritos (nCount_RNA) y de genes (nFeature_RNA) por célula,
+#              comparando el escenario original con el degradado (thin_75),
+#              antes y después del control de calidad.
+#
+# Entradas:    Resultados_Algoritmos_v1/<escenario>_joinmerged_clustering.rds
+#              Resultados_Algoritmos_v1/datos_histograma.rds (datos previos al QC)
+# Salidas:     Plots/QC.png    Histogramas tras el QC (original vs. thin_75)
+#              Plots/noQC.png  Histogramas antes del QC (original vs. degradado)
+# Requiere:    04_Anadir_clustering.R
+# Siguiente:   06_Marcadores.R
+#
+# Nota:        Las secciones 4 y 5 son exploratorias: muestran figuras en
+#              pantalla pero no las guardan ni forman parte de los resultados.
+# ==============================================================================
+
 library(ggplot2)
 library(dplyr)
 library(patchwork)
 
+# ==========================================
+# 1. CARGA DE DATOS
+# ==========================================
 # Extraccion de metadatos
 merged_rds   <- here::here("Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
 merged <- readRDS(merged_rds)
@@ -12,7 +34,7 @@ merged_rds   <- here::here("Resultados_Algoritmos_v1/thin_75_joinmerged_clusteri
 merged_thin75 <- readRDS(merged_rds)
 meta_thin <- merged_thin75@meta.data
 meta_thin$Version <- "Thin75"
-
+# Revisiones rápidas (solo se muestran en consola) 
 meta_original
 dim(merged)
 dim(merged_thin75)
@@ -22,6 +44,9 @@ typeof(merged@assays$RNA)
 counts_matrix <- merged_thin75@assays$RNA@layers$counts
 sum(rownames(counts_matrix)[rowSums(counts_matrix) > 0])
 
+# ==========================================
+# 2. FIGURA QC: DATOS TRAS EL CONTROL DE CALIDAD (QC.png)
+# ==========================================
 columnas_qc <- c("nCount_RNA", "nFeature_RNA", "Version")
 
 meta_combinada <- rbind(
@@ -57,6 +82,10 @@ print(plots)
 dev.off()
 cat("-> QC guardada:", ruta_qc, "\n")
 
+# ==========================================
+# 3. FIGURA QC: DATOS ANTES DEL CONTROL DE CALIDAD (noQC.png)
+# ==========================================
+
 noqc_rds   <- here::here("Resultados_Algoritmos_v1/datos_histograma.rds")
 merged_noqc <- readRDS(noqc_rds)
 
@@ -86,56 +115,10 @@ print(plots)
 dev.off()
 cat("-> QC guardada:", ruta_qc, "\n")
 
-### Clustree 
+# ==========================================
+# 4. EXPLORATORIO: DENSIDADES Y COMPLEJIDAD (log10GenesPerUMI)
+# ==========================================
 
-table(merged@meta.data$IST_original_nclusts6, useNA = "always")
-table(merged_thin75@meta.data$IST_thin_75_nclusts6,  useNA = "always")
-
-celulas_comunes <- intersect(rownames(merged@meta.data), rownames(merged_thin75@meta.data))
-df_comparacion <- data.frame(
-  cell_ID = celulas_comunes,
-  comp_1 = merged@meta.data[celulas_comunes, "IST_original_nclusts6"],
-  comp_2 = merged_thin75@meta.data[celulas_comunes, "IST_thin_75_nclusts6"] # O como se llame en el thin75
-)
-
-diccionario_cortos <- c(
-  "B-cell"         = "B",
-  "endothelial"    = "Endo",
-  "fibroblast"     = "Fib",
-  "macrophage"     = "Mac",
-  "mast"           = "Mast",
-  "mDC"            = "mDC",
-  "monocyte"       = "Mono",
-  "neutrophil"     = "Neu",
-  "NK"             = "NK",
-  "pDC"            = "pDC",
-  "plasmablast"    = "Plas",
-  "T CD4 memory"   = "T4m",
-  "T CD4 naive"    = "T4n",
-  "T CD8 memory"   = "T8m",
-  "T CD8 naive"    = "T8n",
-  "Treg"           = "Treg"
-)
-
-traducir_etiquetas <- function(vector_original) {
-  traduccion <- unname(diccionario_cortos[vector_original])
-  vector_final <- ifelse(is.na(traduccion), vector_original, traduccion)
-  vector_final[vector_final == "undefined" | is.na(vector_final)] <- "Unk"
-  
-  return(vector_final)
-}
-
-df_comparacion$comp_1 <- traducir_etiquetas(df_comparacion$comp_1)
-df_comparacion$comp_2 <- traducir_etiquetas(df_comparacion$comp_2)
-
-plot_clustree_comparativo <- clustree(df_comparacion, prefix = "comp_") +
-  labs(title = "Estabilidad del Clustering: Original vs Thin75",
-       subtitle = "InSituType (k=6)")
-
-print(plot_clustree_comparativo)
-
-
-#Plots de densidad
 plot_densidad_ncount <- ggplot(meta_combinada, aes(x = nCount_RNA, fill = Version, color = Version)) +
   geom_density(aes(y= after_stat(count)), alpha = 0.5) +
   labs(title = "Distribución de Transcritos",

@@ -1,9 +1,34 @@
+# ==============================================================================
+# 11_Resultados_pacientes.R
+# ------------------------------------------------------------------------------
+# Descripción: Distribución de los tipos celulares asignados por paciente,
+#              método y escenario, y comparación entre Leiden e InSituType
+#              mediante clustree.
+#
+# Entradas:    Resultados_Algoritmos_v1/datos_histograma.rds (datos previos al QC)
+#              Resultados_Algoritmos_v1/<escenario>_joinmerged_clustering.rds
+#              Resultados_Algoritmos_v1/clustering_etiquetado.txt
+# Salidas:     Resultados_Algoritmos_v1/Resultados_etiquetado/
+#                clusters_paciente_original.png   clusters_metodo_original.png
+#                clusters_paciente_degradado.png  clusters_metodo_degradado.png
+#                clusters_escenarios.png          Leiden_IST_clustree_comparativo.png
+# Requiere:    09_Unir_etiquetas.R
+#
+# Nota:        Las secciones 1 y 2 son exploratorias (estadísticos y
+#              histogramas por paciente que solo se muestran en pantalla).
+# ==============================================================================
+
 library(Seurat)
 library(ggplot2)
 library(scales)
 library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(clustree)
 
-#### datos pre control de calidad ####
+# ==========================================
+# 1. EXPLORATORIO: DATOS ANTES DEL QC POR PACIENTE
+# ==========================================
 
 base <- here::here("Resultados_Algoritmos_v1")
 base_salida <- file.path(base, "Resultados_etiquetado")
@@ -53,7 +78,9 @@ plot_hist_nft <- ggplot(merged_noqc, aes(x = nFeature_RNA, fill = paciente, colo
              scales = 'free')
 plot_hist_nft
 
-#### datos post control de calidad ####
+# ==========================================
+# 2. EXPLORATORIO: DATOS TRAS EL QC POR PACIENTE
+# ==========================================
 
 merged_rds   <- here::here("Resultados_Algoritmos_v1/original_joinmerged_clustering.rds")
 merged <- readRDS(merged_rds)
@@ -95,7 +122,10 @@ plot_hist_nft <- ggplot(meta_combinada, aes(x = nFeature_RNA, fill = orig.ident,
              cols = vars(orig.ident))
 plot_hist_nft
 
-### Anadir clustering ###
+# ==========================================
+# 3. UNIÓN DE LAS ETIQUETAS CON LA METADATA
+# ==========================================
+
 resultados <- read.table(here::here("Resultados_Algoritmos_v1/clustering_etiquetado.txt"), 
                          header = TRUE, 
                          sep = "\t",
@@ -146,9 +176,12 @@ meta_final$orig.ident <- factor(meta_final$orig.ident, levels = c("Lung5_Rep3", 
 meta_final$Metodo <- factor(meta_final$Metodo, levels = c("Leiden", "IST"))
 meta_final$Resolucion <- factor(meta_final$Resolucion, levels = c("res0.8", "res1", "res1.2", "nclusts6", "nclusts8", "nclusts10"))
 
-#### Plot ####
+# ==========================================
+# 4. PALETA DE COLORES POR TIPO CELULAR
+# ==========================================
+
 paleta_maestra <- c(
-  # --- LINAJE LINFOIDE (Azules, pizarras y púrpuras maduros) ---
+  # --- LINAJE LINFOIDE ---
   "cel. B"  = "#4DBBD5",  
   "Plas"    = "#7A3B69", 
   "Linf. T" = "#3C5488",  
@@ -156,8 +189,8 @@ paleta_maestra <- c(
   "T8"      = "#0072B5", 
   "Treg"    = "#F39B7F",  
   "NK"      = "#8A4198",  
-  
-  # --- LINAJE MIELOIDE (Verdes, tierras y cálidos) ---
+
+  # --- LINAJE MIELOIDE ---
   "Mieloide"= "#91D1C2", 
   "Mac"     = "#3B8132",  
   "Mono"    = "#B2DF9A",  
@@ -166,19 +199,20 @@ paleta_maestra <- c(
   "Mast"    = "#8B5A2B",  
   "Neu"     = "#B09C85",  
   "Mac/Fib" = "#4D6C7B",  
-  
+
   # --- ESTROMA / MICROAMBIENTE ---
   "Endo"    = "#D15396",  
   "Fib"     = "#E68AC8",  
-  
-  # --- TUS GRUPOS DEL RECODE (Gama principal de alto impacto) ---
+
+  # --- TUS GRUPOS DEL RECODE ---
   "Tumor"   = "#C22D3C",  
   "Estroma" = "#00A087",  
   "Epit"    = "#005083" 
 )
 
-
-# Original - comparacion entre pacientes y entre metodos 
+# ==========================================
+# 5. FIGURAS: ESCENARIO ORIGINAL (por paciente y por método)
+# ==========================================
 meta_final_original <- meta_final %>%
                         filter(Version == "Original")
 
@@ -220,9 +254,10 @@ ggsave(filename = filename,
        height = 7,      
        dpi = 300)
 
-### -------------------------------------------------------------------------------- ##
+# ==========================================
+# 6. FIGURAS: ESCENARIO DEGRADADO (por paciente y por método)
+# ==========================================
 
-# Degradado 
 meta_final_thin <- meta_final %>%
   filter(Version == "Thin75")
 
@@ -262,9 +297,9 @@ ggsave(filename = filename,
        height = 7,      
        dpi = 300)
 
-### -------------------------------------------------------------------------------- ##
-
-#Escenarios 
+# ==========================================
+# 7. FIGURA: COMPARACIÓN ENTRE ESCENARIOS
+# ==========================================
 bar_escenarios <- ggplot(meta_final, aes(y = Resolucion, 
                                 fill = Cluster)) +
                   geom_bar() +
@@ -282,13 +317,10 @@ ggsave(filename = filename,
        width = 12,      
        height = 7,      
        dpi = 300)
-### -------------------------------------------------------------------------------- ##
 
-
-library(dplyr)
-library(tidyr)
-library(clustree)
-
+# ==========================================
+# 8. CLUSTREE ENTRE MÉTODOS (Leiden res 1.2 vs. InSituType 10 perfiles)
+# ==========================================
 # 1. Filtramos y preparamos el dataframe
 df_comparacion <- meta_final %>%
   filter(
