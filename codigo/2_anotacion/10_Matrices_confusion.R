@@ -1,5 +1,5 @@
 # ==============================================================================
-# 06_Confusion.R
+# 10_Matrices_confusion.R
 # ------------------------------------------------------------------------------
 # Descripción: Compara las etiquetas de tipo celular entre escenarios, parámetros
 #              y métodos mediante matrices de confusión, y calcula la
@@ -9,7 +9,8 @@
 # Entradas:    Resultados_Algoritmos_v1/clustering_etiquetado.txt
 # Salidas:     Resultados_Algoritmos_v1/Matriz_confusion/<col1>_vs_<col2>_combinado.png
 #              Resultados_Algoritmos_v1/Matriz_confusion/ARI.png
-# Requiere:    05_Labels.R
+# Requiere:    09_Unir_etiquetas.R
+# Siguiente:   11_Resultados_pacientes.R
 # Funciones:   guardar_matriz() y mat_confusion() de funciones.R
 # ==============================================================================
 

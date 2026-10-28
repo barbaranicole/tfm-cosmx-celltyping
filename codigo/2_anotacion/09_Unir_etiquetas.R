@@ -1,5 +1,5 @@
 # ==============================================================================
-# 05_Labels.R
+# 09_Unir_etiquetas.R
 # ------------------------------------------------------------------------------
 # Descripción: Une las etiquetas de tipo celular asignadas en los reportes de
 #              Leiden e InSituType (ambos escenarios) en una sola tabla. Elimina
@@ -10,8 +10,8 @@
 # Salidas:     Resultados_Algoritmos_v1/clustering_etiquetado.txt
 #              Columnas: cell_ID y una columna por método, escenario y parámetro
 #              con el tipo celular asignado.
-# Requiere:    Haber renderizado 04_Resultados_Leiden.qmd y 04_Resultados_IST.qmd
-# Siguiente:   06_Confusion.R, resultados_pacientes.R
+# Requiere:    Haber renderizado 07_Resultados_Leiden.qmd y 08_Resultados_InSituType.qmd
+# Siguiente:   10_Matrices_confusion.R
 # ==============================================================================
 
 library(dplyr)

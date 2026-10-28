@@ -1,5 +1,5 @@
 # ==============================================================================
-# 01_Resultados_clustering.R
+# 03_Unir_resultados.R
 # ------------------------------------------------------------------------------
 # Descripción: Une en una sola tabla los resultados de clustering de Leiden e
 #              InSituType de ambos escenarios (original y thin_75). Cada columna
@@ -12,8 +12,8 @@
 # Salidas:     Resultados_Algoritmos_v1/clustering_resultados.txt
 #              Columnas: cell_ID, Leiden_<escenario>_res<r>,
 #              IST_<escenario>_nclusts<n> e IST_<escenario>_nclusts<n>_conf
-# Requiere:    Resultados de Metodos/02_Seurat.R y Metodos/03_IST.R
-# Siguiente:   02_Clustering_joinmerged.R
+# Requiere:    Resultados de 1_clustering/01_Leiden.R y 1_clustering/02_InSituType.R
+# Siguiente:   04_Anadir_clustering.R
 # ==============================================================================
 
 library(dplyr)

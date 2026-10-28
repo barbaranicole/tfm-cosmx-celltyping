@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # ==============================================================================
-# 03_Marcadores.R
+# 06_Marcadores.R
 # ------------------------------------------------------------------------------
 # Descripción: Calcula los genes marcadores (FindAllMarkers, solo positivos,
 #              min.pct = 0.25, logfc.threshold = 0.25) para cada columna de
@@ -11,8 +11,8 @@
 #              Si el archivo de marcadores ya existe, se omite.
 # Entradas:    Resultados_Algoritmos_v1/<escenario>_joinmerged_clustering.rds
 # Salidas:     Resultados_Algoritmos_v1/Resultados_<escenario>/Marcadores_<columna>.txt
-# Requiere:    02_Clustering_joinmerged.R
-# Siguiente:   04_Resultados_Leiden.qmd y 04_Resultados_IST.qmd
+# Requiere:    04_Anadir_clustering.R
+# Siguiente:   07_Resultados_Leiden.qmd y 08_Resultados_InSituType.qmd
 # ==============================================================================
 
 library(Seurat)

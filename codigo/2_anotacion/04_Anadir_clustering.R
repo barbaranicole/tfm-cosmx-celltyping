@@ -1,5 +1,5 @@
 # ==============================================================================
-# 02_Clustering_joinmerged.R
+# 04_Anadir_clustering.R
 # ------------------------------------------------------------------------------
 # Descripción: Añade los clusters de Leiden e InSituType a la metadata del
 #              objeto Seurat de cada escenario (original y thin_75). A partir
@@ -8,8 +8,8 @@
 # Entradas:    Resultados_Algoritmos_v1/clustering_resultados.txt
 #              Resultados_Algoritmos_v1/<escenario>_joinmerged.rds (no se modifica)
 # Salidas:     Resultados_Algoritmos_v1/<escenario>_joinmerged_clustering.rds
-# Requiere:    01_Resultados_clustering.R
-# Siguiente:   03_Marcadores.R
+# Requiere:    03_Unir_resultados.R
+# Siguiente:   05_Figuras_QC.R
 # ==============================================================================
 
 library(Seurat)
@@ -24,7 +24,7 @@ versiones   <- c("original", "thin_75")
 # Nombre del RDS de salida:
 sufijo_salida <- "joinmerged_clustering"
 
-if (!file.exists(merged_txt)) stop("Ejecuta antes 01_Resultados_clustering.R para generar ", merged_txt)
+if (!file.exists(merged_txt)) stop("Ejecuta antes 03_Unir_resultados.R para generar ", merged_txt)
 # ==========================================
 # 1. LECTURA DE LA TABLA DE CLUSTERING
 # ==========================================

@@ -1,20 +1,20 @@
 #!/usr/bin/env Rscript
 # ==============================================================================
-# 02_Seurat.R
+# 01_Leiden.R
 # ------------------------------------------------------------------------------
 # Descripción: Clustering no supervisado con el algoritmo de Leiden (Seurat).
 #              Construye el grafo de vecinos sobre el PCA y detecta clusters a
 #              la resolución indicada.
 #
 # Ejecución:   Servidor del laboratorio (por requerimientos de memoria).
-# Uso:         Rscript 02_Seurat.R <input.rds> <dims> <resolution> <dir_salida>
+# Uso:         Rscript 01_Leiden.R <input.rds> <dims> <resolution> <dir_salida>
 #              En el TFM: dims = 30; resolution = 0.6, 0.8, 1 y 1.2
 #              (0.6 no se incluyó en el análisis posterior).
 # Entradas:    input.rds  Objeto Seurat integrado (5 pacientes), normalizado y
 #                         con PCA calculado (*_merged.rds).
 # Salidas:     <dir_salida>/<input>_dims<d>_res<r>_<fecha>.txt  cell_ID y cluster
 #              <dir_salida>/Log_<input>_dims<d>_res<r>_<fecha>.txt  registro
-# Siguiente:   01_Resultados_clustering.R
+# Siguiente:   2_anotacion/03_Unir_resultados.R
 # ==============================================================================
 
 # ==========================================
@@ -33,7 +33,7 @@ suppressPackageStartupMessages({
 
 args <- commandArgs(trailingOnly = TRUE)
 if(length(args) < 4) {
-  stop("Error. Uso: Rscript 02_Seurat.R <input.rds> <dims> <resolution> <dir_salida>")
+  stop("Error. Uso: Rscript 01_Leiden.R <input.rds> <dims> <resolution> <dir_salida>")
 }
 
 in_rds     <- args[1]

@@ -35,7 +35,7 @@ del laboratorio y no forman parte de este repositorio:
   en el escenario original y 398.813 en el degradado (`thin_75`).
 - Control de calidad, normalización, PCA (50 componentes) y UMAP, realizados con
   el código del laboratorio.
-- Ejecución de Leiden e InSituType mediante los scripts de `codigo/Metodos/`,
+- Ejecución de Leiden e InSituType mediante los scripts de `codigo/1_clustering/`,
   preparados para recibir parámetros por línea de comandos.
 
 Leiden se ejecutó directamente sobre el objeto Seurat integrado. Para InSituType
@@ -56,33 +56,39 @@ InSituType utiliza como referencia el perfil **IO_1k** (panel de 960 genes), dis
 
 ```
 codigo/
-├── Metodos/                     # Pipeline: un script por paso (se ejecutan con Rscript)
-│   ├── 01_QC.R                  # Control de calidad, sondas negativas y normalización
-│   ├── 02_Seurat.R              # Clustering Leiden
-│   └── 03_IST.R                 # InSituType
-├── 01_Resultados_clustering.R   # Une los resultados de ambos métodos en un único archivo
-├── 02_Clustering_joinmerged.R   # Añade los resultados de clustering a los objetos Seurat
-├── 03_Marcadores.R              # Genes marcadores por cluster (FindAllMarkers)
-├── 04_Resultados_IST.qmd        # Reporte de resultados: InSituType
-├── 04_Resultados_Leiden.qmd     # Reporte de resultados: Leiden
-├── 05_Labels.R                  # Unificación de etiquetas de tipo celular
-├── 06_Confusion.R               # Matrices de confusión y ARI entre métodos y escenarios
-├── funciones.R                  # Funciones auxiliares
-├── qc_plots.R                   # Figuras de control de calidad
-└── resultados_pacientes.R       # Resultados por paciente
+├── 1_clustering/                    # Ejecutado en servidor (se ejecutan con Rscript)
+│   ├── 01_Leiden.R                  # Clustering Leiden (Seurat)
+│   └── 02_InSituType.R              # Clustering semisupervisado InSituType
+└── 2_anotacion/                     # Anotación y análisis (ejecutado en local)
+    ├── 03_Unir_resultados.R         # Une los resultados de ambos métodos en una tabla
+    ├── 04_Anadir_clustering.R       # Añade los clusters a los objetos Seurat
+    ├── 05_Figuras_QC.R              # Figuras de control de calidad
+    ├── 06_Marcadores.R              # Genes marcadores por cluster (FindAllMarkers)
+    ├── 07_Resultados_Leiden.qmd     # Reporte y anotación: Leiden
+    ├── 08_Resultados_InSituType.qmd # Reporte y anotación: InSituType
+    ├── 09_Unir_etiquetas.R          # Une las etiquetas de tipo celular de ambos métodos
+    ├── 10_Matrices_confusion.R      # Matrices de confusión y ARI
+    ├── 11_Resultados_pacientes.R    # Distribución de tipos celulares por paciente
+    └── funciones.R                  # Funciones auxiliares
 ```
 
 ## Uso
 
-Los scripts de `Metodos/` se ejecutan desde la terminal:
+Los scripts de `1_clustering/` se ejecutaron en servidor desde la terminal:
 
 ```bash
-Rscript codigo/Metodos/01_QC.R <input_raw.rds> <out_subset.rds> <out_neg_vector.rds>
-Rscript codigo/Metodos/02_Seurat.R <input_preprocesado.rds> <dims> <resolution> <directorio_salida>
-Rscript codigo/Metodos/03_IST.R <input.rds> <neg_vector.rds> <reference.csv> <n_clusts> <directorio_salida>
+Rscript codigo/1_clustering/01_Leiden.R <input.rds> <dims> <resolution> <dir_salida>
+Rscript codigo/1_clustering/02_InSituType.R <input.rds> <neg_vector.rds> <reference.csv> <n_clusts> <dir_salida>
 ```
 
-Después se ejecutan en orden los scripts `01_` a `06_` de `codigo/` y se renderizan los reportes `.qmd`.
+Los de `2_anotacion/` se ejecutan en orden numérico. Los reportes `07` y `08`
+se renderizan con Quarto y, además de generar el HTML, guardan las etiquetas
+de tipo celular que usa `09_Unir_etiquetas.R`:
+
+```bash
+quarto render codigo/2_anotacion/07_Resultados_Leiden.qmd
+quarto render codigo/2_anotacion/08_Resultados_InSituType.qmd
+```
 
 ## Resultados
 
@@ -92,7 +98,7 @@ Los reportes renderizados con los resultados están disponibles en: *(pendiente 
 
 - R 4.4.2
 - Quarto 1.8.27
-- Paquetes de R: `Seurat`, `InSituType`, `clustree`, `mclust`, `tidyverse`, `patchwork`, `pheatmap`, `DT`, `kableExtra`, `knitr`, `here`
+- Paquetes de R: `Seurat`, `InSituType`, `here`, `box`, `clustree`, `mclust`, `tidyverse`, `patchwork`, `pheatmap`, `gridExtra`, `scales`, `DT`, `kableExtra`, `knitr`
 
 ## Licencia
 
