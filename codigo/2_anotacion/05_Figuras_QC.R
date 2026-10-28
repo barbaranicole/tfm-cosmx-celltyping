@@ -12,9 +12,6 @@
 #              Plots/noQC.png  Histogramas antes del QC (original vs. degradado)
 # Requiere:    04_Anadir_clustering.R
 # Siguiente:   06_Marcadores.R
-#
-# Nota:        Las secciones 4 y 5 son exploratorias: muestran figuras en
-#              pantalla pero no las guardan ni forman parte de los resultados.
 # ==============================================================================
 
 library(ggplot2)

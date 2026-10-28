@@ -1,3 +1,17 @@
+# ==============================================================================
+# funciones.R
+# ------------------------------------------------------------------------------
+# Descripción: Funciones auxiliares para el etiquetado manual de clusters y la
+#              comparación entre escenarios (original vs. degradado).
+#
+# Uso:         - 07_Resultados_Leiden.qmd y 08_Resultados_InSituType.qmd la
+#                cargan con source("funciones.R").
+#              - 10_Matrices_confusion.R importa solo mat_confusion() y
+#                guardar_matriz() con box::use() (marcadas con #' @export).
+# Requiere:    Las funciones usadas desde los qmd asumen que ya están cargados
+#              Seurat, ggplot2, patchwork, dplyr, tidyr, knitr, kableExtra y DT.
+# ==============================================================================
+
 box::use(
   stringr[str_match, str_detect, str_remove], # funciones de texto
   pheatmap[pheatmap],                        
@@ -7,6 +21,10 @@ box::use(
   grid[textGrob, gpar]
 )
 
+# ==========================================
+# 1. DICCIONARIO Y PALETA DE COLORES, encima de diccionario_cortos
+# ==========================================
+# Abreviaturas de los tipos celulares del perfil IO_1k (usadas en tablas y figuras).
 diccionario_cortos <- c(
   "B.cell"                        = "B-cell",
   "Conventional.dendritic.cell"   = "cDc",
@@ -27,6 +45,10 @@ diccionario_cortos <- c(
   "undefined"                     = "*"
 )
 
+# Abrevia etiquetas usando diccionario_cortos. Las que no están en el
+# diccionario se mantienen; NA y "undefined" pasan a "*".
+#    - vector_original: vector de etiquetas
+# Devuelve: vector de caracteres con las etiquetas abreviadas.
 traducir_etiquetas <- function(vector_original) {
   vector_original[is.na(vector_original)] <- "*"
   traduccion <- unname(diccionario_cortos[vector_original])
@@ -35,6 +57,7 @@ traducir_etiquetas <- function(vector_original) {
   return(vector_final)
 }
 
+# Colores fijos por tipo celular / grupo, para que coincidan entre figuras.
 paleta_maestra <- c(
   # --- LINAJE LINFOIDE (Azules, pizarras y púrpuras maduros) ---
   "cel. B"  = "#4DBBD5",  
@@ -59,13 +82,22 @@ paleta_maestra <- c(
   "Endo"    = "#D15396",  
   "Fib"     = "#E68AC8",  
   
-  # --- TUS GRUPOS DEL RECODE (Gama principal de alto impacto) ---
+  # --- GRUPOS DEL RECODE (Gama principal de alto impacto) ---
   "Tumor"   = "#C22D3C",  
   "Estroma" = "#00A087",  
   "Epit"    = "#005083" 
 )
 
-
+# ==========================================
+# 2. FIGURAS Y TABLAS PARA LOS INFORMES (07 y 08)
+# ==========================================
+# UMAP coloreado por una columna de clusters usando paleta_maestra. Las etiquetas
+# sin color asignado reciben colores extra de scales::hue_pal().
+#    - obj: Seurat
+#    - col_cluster: columna a usar como identidad
+#    - mi_base_size: tamaño base del texto
+#    - pt_leyenda: tamaño de los puntos en la leyenda
+# Devuelve: objeto ggplot.
 plot_umap_ist <- function(obj, col_cluster, mi_base_size = 12, pt_leyenda = 3) {
   Idents(obj) <- col_cluster
   etiquetas_presentes <- levels(as.factor(obj@meta.data[[col_cluster]]))
@@ -83,6 +115,10 @@ plot_umap_ist <- function(obj, col_cluster, mi_base_size = 12, pt_leyenda = 3) {
     guides(color = guide_legend(ncol = 2, override.aes = list(size = pt_leyenda)))
 }
 
+# Tabla muestra (orig.ident) x cluster con "porcentaje por fila (conteo)".
+#    - obj: Seurat
+#    - col_cluster: columna de clusters
+# Devuelve: tabla kable con estilo.
 tabla_conteos_ist <- function(obj, col_cluster) {
   tabla_base <- table(obj$orig.ident, obj[[col_cluster]][,1])
   tabla_prop <- prop.table(tabla_base, margin = 1) * 100
@@ -97,6 +133,10 @@ tabla_conteos_ist <- function(obj, col_cluster) {
     kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
 }
 
+# Lee la tabla de marcadores (06_Marcadores.R), filtra avg_log2FC > 1 y
+# p_val_adj < 0.05, y ordena por avg_log2FC dentro de cada cluster.
+#    - ruta_markers: ruta del archivo de marcadores
+# Devuelve: tabla interactiva (DT) con un cluster por columna.
 resumen_marcadores_ist <- function(ruta_markers) {
   markers <- read.delim(ruta_markers)
   markers <- markers[(markers$avg_log2FC > 1) & (markers$p_val_adj < 0.05), ]
@@ -125,6 +165,12 @@ resumen_marcadores_ist <- function(ruta_markers) {
             caption = "Genes Marcadores por Clúster")
 }
 
+# Heatmap de la expresión media por cluster (AverageExpression), escalada por
+# fila, con todos los genes ordenados por varianza.
+#    - obj: Seurat
+#    - col_cluster: columna a usar como identidad
+#    - titulo: título del gráfico (por defecto "Perfil promedio - <col_cluster>")
+#    - ruta_archivo: si se indica, pheatmap guarda la figura en esa ruta
 perfil_heatmap_ist <- function(obj, col_cluster, titulo = NULL, ruta_archivo = NA) {
   Idents(obj) <- col_cluster
   perfiles_seurat <- AverageExpression(obj, assays = "RNA", return.seurat = FALSE)
@@ -145,6 +191,11 @@ perfil_heatmap_ist <- function(obj, col_cluster, titulo = NULL, ruta_archivo = N
            filename = ruta_archivo) # La clave para que se guarde correctamente
 }
 
+# Boxplots de Max.PanCK y Mean.PanCK por cluster, ordenados por mediana.
+# PanCK es un marcador epitelial que ayuda a identificar clusters tumorales.
+#    - obj: Seurat
+#    - col_cluster: columna de clusters
+# Devuelve: dos gráficos combinados con patchwork.
 boxplots_panck_ist <- function(obj, col_cluster) {
   meta <- obj@meta.data
   p1 <- ggplot(meta, aes(x = reorder(.data[[col_cluster]], Max.PanCK, median),
@@ -167,7 +218,16 @@ boxplots_panck_ist <- function(obj, col_cluster) {
   p1 + p2
 }
 
-#ajustar subtitulo por metodo
+# Clustree entre las etiquetas del escenario original (comp_1) y del degradado
+# (comp_2), emparejadas por cell_ID.
+#    - obj_orig, obj_thin: objetos Seurat original y degradado
+#    - col_orig, col_thin: columnas de etiquetas a comparar
+#    - k_val: valor que se muestra en el subtítulo
+#    - prop_filter: oculta las conexiones por debajo de esa proporción
+# Nota: el subtítulo está fijo como "InSituType (k=...)", por lo que las
+#       figuras de 07_Resultados_Leiden.qmd lo muestran aunque k_val sea
+#       la resolución de Leiden. Se deja así para no alterar las figuras
+#       publicadas.
 plot_clustree_comparativo_ist <- function(obj_orig, obj_thin, col_orig, col_thin, k_val, prop_filter = 0.1) {
   df_original <- data.frame(
     cell_ID = rownames(obj_orig@meta.data),
@@ -200,10 +260,15 @@ plot_clustree_comparativo_ist <- function(obj_orig, obj_thin, col_orig, col_thin
   p
 }
 
-
+# ==========================================
+# 3. RECODIFICACIÓN Y GUARDADO DE FIGURAS
+# ==========================================
+# Agrupa clusters en categorías (p. ej. Tumor, Estroma) en una nueva columna;
+# los clusters que no están en `mapa` conservan su etiqueta.
 #    - col_cluster: nombre de la columna original (ej. "IST_original_nclusts6")
 #    - nueva_col: nombre de la nueva columna (ej. "IST_original_nclusts6_grupo")
 #    - mapa: named vector, p.ej. c("a"="Tumor", "b"="Inmune*")
+
 recode_cluster_grupos <- function(obj, col_cluster, nueva_col, mapa) {
   labels_orig <- as.character(obj@meta.data[[col_cluster]])
   labels_new  <- labels_orig
@@ -234,7 +299,17 @@ guardar_panck_ist <- function(obj, col_cluster, ruta_png) {
   dev.off()
 }
 
-
+# ==========================================
+# 4. MATRICES DE CONFUSIÓN 
+# ==========================================
+# Matrices de confusión entre dos columnas de etiquetas: porcentaje por fila
+# en ambos sentidos y, opcionalmente, conteos absolutos. Título y ejes se
+# deducen del nombre de las columnas (<Leiden|IST>_<original|thin_75>_<param>).
+#    - obj: data.frame / metadata con ambas columnas
+#    - col1, col2: columnas a comparar
+#    - titulo: título manual (si es NULL se genera automáticamente)
+#    - mostrar_conteo: añade la matriz de conteos
+# Devuelve: grob combinado (gridExtra::arrangeGrob).
 #' @export
 mat_confusion <- function(obj, col1, col2, titulo = NULL, mostrar_conteo = TRUE) {
   
@@ -344,6 +419,8 @@ mat_confusion <- function(obj, col1, col2, titulo = NULL, mostrar_conteo = TRUE)
   return(plot_combinado)
 }
 
+# Guarda la figura de mat_confusion() como
+# <carpeta_salida>/<col1>_vs_<col2>_combinado.png (20 o 14 pulgadas de ancho).
 #' @export
 guardar_matriz <- function(obj, col1, col2, carpeta_salida, mostrar_conteo = TRUE) {
   
